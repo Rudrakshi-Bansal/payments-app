@@ -11,70 +11,84 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function Signup() {
-  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
   const navigate = useNavigate();
+  const [error, setError] = useState("");
 
+
+  const handleSignUp = async () => {
+    try {
+      const response = await axios.post("http://localhost:3000/api/v1/user/signup", {
+        username: userName,
+        password,
+        firstname: firstName,
+        lastname: lastName
+      });
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        navigate("/signin");
+      }
+    } catch(err) {
+      if (err.response?.status === 411) {
+        setError("Username already taken!");
+      }
+      else {
+        setError("Something went wrong. Please try again!");
+      }
+    }
+  }
 
   return (
-    <div className="bg-slate-300 h-screen w-screen flex justify-center">
-      <div className="flex flex-col justify-center">
-        <div className="rounded-lg bg-white w-80 text-center p-2 h-max px-4">
-          <Heading label={"Sign up"} />
-          <SubHeading label={"Enter your infromation to create an account"} />
-          <InputBox
-            placeholder="John"
-            label={"First Name"}
-            onChange={(e) => {
-              setFirstname(e.target.value);
-            }}
-          />
-          <InputBox
-            placeholder="Doe"
-            label={"Last Name"}
-            onChange={(e) => {
-              setLastname(e.target.value);
-            }}
-          />
-          <InputBox
-            placeholder="harkirat@gmail.com"
-            label={"Email"}
-            onChange={(e) => {
-              setUsername(e.target.value);
-            }}
-          />
-          <InputBox
-            placeholder="123456"
-            label={"Password"}
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
-          />
-          <div className="pt-4">
-            <Button
-              label={"Sign up"}
-              onClickFunc={async () => {
-            const response = await axios.post("http://localhost:3000/api/v1/user/signup", {
-                username,
-                password,
-                firstname,
-                lastname
-                
-            })
-            localStorage.setItem("token", response.data.token)
-            navigate("/dashboard")
+    <div className="bg-slate-300 h-screen w-screen flex justify-center items-center">
+      <div className="bg-white rounded-2xl shadow-2xl w-[400px] max-w-[90%] p-8 text-center">
+        <Heading label={"Sign up"} />
+        <SubHeading label={"Enter your information to create an account"} />
+        <InputBox
+          placeholder="First Name"
+          label={"First Name"}
+          onChange={(e) => {
+            setFirstName(e.target.value);
           }}
-            
-            />
-          </div>
-          {/* <BottomWarning
-            label={"Already have an account?"}
-            buttonText={"Sign in"}
-            to={"/signin"}
-          /> */}
+        />
+        <InputBox
+          placeholder="Last Name"
+          label={"Last Name"}
+          onChange={(e) => {
+            setLastName(e.target.value);
+          }}
+        />
+        <InputBox
+          placeholder="email@gmail.com"
+          label={"Email"}
+          onChange={(e) => {
+            setUserName(e.target.value);
+          }}
+        />
+        <InputBox
+          placeholder="**"
+          label={"Password"}
+          type={"password"}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+        />
+        <div className="pt-4">
+          <Button
+            label={"Sign up"}
+            onClick={handleSignUp}
+          />
         </div>
+        {error && (
+          <div className="text-red-500 text-sm pt-2">{error}</div>
+        )}
+        <BottomWarning
+          label={"Already have an account?"}
+          buttonText={"Sign in"}
+          to={"/signin"}
+        />
       </div>
     </div>
   );

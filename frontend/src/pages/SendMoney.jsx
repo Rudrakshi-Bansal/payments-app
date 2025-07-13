@@ -12,27 +12,33 @@ export default function SendMoney  () {
   const [transacted, setTransacted] = useState("");
 
   const handleFunction = async () => {
-    const response = await axios.post(
-      "http://localhost:3000/api/v1/account/transfer",
-      {
-        to: id,
-        amount,
-      },
-      {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
+    // Validate amount
+    if (!amount || amount <= 0) {
+      setTransacted("Please enter a valid amount");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/accounts/transfer",
+        {
+          to: id,
+          amount: parseFloat(amount),
         },
-      }
-    );
-    setTransacted("Transaction Successful");
-    setTimeout(() => {
-      navigate(
-        "/dashboard?firstName=" +
-          response.data.firstName +
-          "&userId=" +
-          response.data.userId
+        {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
       );
-    }, 3000);
+      setTransacted("Transaction Successful");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 3000);
+    } catch (error) {
+      console.error("Transfer error:", error);
+      setTransacted("Transaction Failed: " + (error.response?.data?.message || "Unknown error"));
+    }
   };
 
   return (
@@ -53,7 +59,7 @@ export default function SendMoney  () {
               <div className="space-y-2">
                 <label
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  for="amount"
+                  htmlFor="amount"
                 >
                   Amount (in Rs)
                 </label>
@@ -68,7 +74,9 @@ export default function SendMoney  () {
                 />
               </div>
               {transacted && (
-                <div className="text-green-500 text-sm pt-2">{transacted+" Redirecting in 3s"}</div>
+                <div className={`text-sm pt-2 ${transacted.includes("Failed") ? "text-red-500" : "text-green-500"}`}>
+                  {transacted}{transacted === "Transaction Successful" ? " Redirecting in 3s" : ""}
+                </div>
               )}
               <button
                 onClick={handleFunction}

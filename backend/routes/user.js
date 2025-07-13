@@ -93,9 +93,9 @@ userRouter.get("/bulk", async (req, res) => {
 
     const users = await User.find({
     $or : [{
-            firstname: { $regex: filter }},
+            firstname: { $regex: filter, $options: 'i' }},
            {
-            lastname: { $regex: filter}
+            lastname: { $regex: filter, $options: 'i' }
     }]
 })
     res.json({
@@ -107,6 +107,24 @@ userRouter.get("/bulk", async (req, res) => {
         })
     )
     })
+});
+
+userRouter.get("/me", authMiddleWare, async (req, res) => {
+    const userId = req.userId;
+    const user = await User.findById(userId);
+    
+    if (!user) {
+        return res.status(404).json({
+            message: "User not found"
+        });
+    }
+
+    res.json({
+        username: user.username,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        _id: user._id
+    });
 });
 
 module.exports = userRouter
